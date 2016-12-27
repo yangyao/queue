@@ -4,7 +4,7 @@ class AbstractMessage {
 
     /**
      * 获取队列参数
-     * 
+     *
      * @return array
      */
     public function get_params(){}

@@ -1,20 +1,16 @@
 <?php
-/**
- * MIT licence
- *
- * todo 这里是一个mysql数据库的模型，封装数据库的crud 和 connect ?
- */
+
 namespace Yangyao\Queue\Handler;
 use Yangyao\Queue\Connectors\MysqlConnector;
 class MysqlHandler
 {
-    private $db;
+    private $connector;
 
-    function __construct(MysqlConnector $db)
+    function __construct($host, $port, $user, $pass)
     {
-        $this->db = $db;
-        $db->exec('set SESSION autocommit=1;');
-        $db->exec('set @msgID = -1;');
+        $this->connector = MysqlConnector::connect($host, $port, $user, $pass);
+        $this->connector->exec('set SESSION autocommit=1;');
+        $this->connector->exec('set @msgID = -1;');
     }
 
     /**

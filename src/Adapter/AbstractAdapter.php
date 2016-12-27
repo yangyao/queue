@@ -2,7 +2,11 @@
 namespace Yangyao\Queue\Adapter;
 
 class AbstractAdapter {
-
+    /**
+     * 添加一个队列任务
+     *
+     * @return bool
+     */
     public function publish(){}
 
     /**
@@ -11,9 +15,17 @@ class AbstractAdapter {
      * @return Yangyao\Queue\Message\AbstractMessage
      */
     public function get(){}
-
+    /**
+     * 删除一个队列任务
+     *
+     * @return bool
+     */
 	public function ack(){}
-
+    /**
+     * 清空一个队列任务
+     *
+     * @return bool
+     */
 	public function purge(){}
 
     /**

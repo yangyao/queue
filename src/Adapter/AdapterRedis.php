@@ -1,7 +1,7 @@
 <?php
 namespace Yangyao\Queue\Adapter;
 use Illuminate\Support\Arr;
-
+use Yangyao\Queue\Handler\RedisHandler;
 class AdapterRedis extends AbstractAdapter {
 
     /**
@@ -11,6 +11,12 @@ class AdapterRedis extends AbstractAdapter {
      */
     protected $expire = 3600;
 
+    private $__handler;
+
+    function __construct(RedisHandler $handler){
+
+        $this->__handler = $handler;
+    }
 
     /**
      * 创建一个队列任务
@@ -40,7 +46,7 @@ class AdapterRedis extends AbstractAdapter {
      */
     public function pushRaw($payload, $queueName )
     {
-        redis::scene('queue')->rpush($queueName, $payload);
+        $this->__handler->rPush($queueName, $payload);
 
         return Arr::get(json_decode($payload, true), 'id');
     }
@@ -58,7 +64,7 @@ class AdapterRedis extends AbstractAdapter {
             $this->migrateAllExpiredJobs($queueName);
         }
 
-        $objectReids = redis::scene('queue');
+        $objectReids = $this->__handler;
         $objectReids->loadScripts('queueGet');
 
         $queueData = $objectReids->queueGet($queueName, $queueName.':reserved', time() + $this->expire);
@@ -82,7 +88,7 @@ class AdapterRedis extends AbstractAdapter {
         $queueName = $queueMessage->getQueueName();
         $queueData = $queueMessage->getQueueData();
 
-        return redis::scene('queue')->zrem($queueName.':reserved', $queueData);
+        return $this->__handler->zrem($queueName.':reserved', $queueData);
     }
 
     /**
@@ -92,12 +98,12 @@ class AdapterRedis extends AbstractAdapter {
      */
     public function purge($queueName)
     {
-        redis::scene('queue')->ltrim($queueName,-1,0);
+        $this->__handler->ltrim($queueName,-1,0);
     }
 
     public function is_end($queueName)
     {
-        $len = redis::scene('queue')->llen($queueName);
+        $len = $this->__handler->llen($queueName);
         return $len > 0 ? false : true;
     }
 
@@ -127,7 +133,7 @@ class AdapterRedis extends AbstractAdapter {
     {
         $options = ['cas' => true, 'watch' => $from, 'retry' => 10];
 
-        redis::scene('queue')->transaction($options, function ($transaction) use ($from, $to) {
+        $this->__handler->transaction($options, function ($transaction) use ($from, $to) {
 
             $queueData = $this->getExpiredJobs(
                 $transaction, $from, $time = time()

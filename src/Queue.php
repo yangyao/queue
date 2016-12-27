@@ -48,17 +48,6 @@ class Queue{
         return true;
     }
 
-    static public function push($worker, $params){
-        $queue_name = self::$__config->get('worker')[$worker]['queue'];
-        $queue_data = array(
-            'queue_name' => $queue_name,
-            'worker' => self::$__config->get('worker')[$worker]['class'],
-            'params' => $params,
-        );
-        self::$__instance->__adapter->publish($queue_name, $queue_data);
-        return true;
-    }
-
     public function get($queue_name){
         $message = $this->__adapter->get($queue_name);
         if ($message instanceof AbstractMessage){
@@ -74,7 +63,6 @@ class Queue{
     public function run(AbstractMessage $message){
         $worker = $message->get_worker();
         $params = $message->get_params();
-
         $obj_task = new $worker();
         if ($obj_task instanceof Task) {
             call_user_func_array(array($obj_task, 'exec'), array($params));

@@ -48,12 +48,12 @@ class AdapterMysql extends AbstractAdapter{
     }
 
     /**
-     * 确认消息已经被消费.
-     * @param string $queue_id 队列id号
+     * 删除一个队列任务
+     * @param MessageMysql $queue_message
      *
      * @return mixed 队列任务数据
      */
-    public function ack($queue_message){
+    public function ack(MessageMysql $queue_message){
         $queue_id = $queue_message->get_id();
         return $this->__handler->delete(array('id'=>$queue_id));
     }

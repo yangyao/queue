@@ -25,7 +25,7 @@ class RedisHandler
      * @return mixed
      */
     public function __call($method, $parameters){
-        if(method_exists(new \Redis(),$method)){
+        if(method_exists($this->connector,$method)){
             return $this->connector->$method($parameters);
         }
         throw new Exception("method dose not exists!");

@@ -6,8 +6,11 @@ class MysqlHandler
 {
     private $connector;
 
-    function __construct($host, $port, $user, $pass)
+    private $table;
+
+    function __construct($host, $port, $user, $pass,$table)
     {
+        $this->table = $table;
         $this->connector = MysqlConnector::connect($host, $port, $user, $pass);
         $this->connector->exec('set SESSION autocommit=1;');
         $this->connector->exec('set @msgID = -1;');
@@ -22,9 +25,9 @@ class MysqlHandler
      */
     public function get($queue_name)
     {
-        if (app::get('system')->database()->executeUpdate('UPDATE system_queue_mysql force index(PRIMARY) SET owner_thread_id=GREATEST(CONNECTION_ID() ,(@msgID:=id)*0),last_cosume_time=? WHERE queue_name=? and owner_thread_id=-1 order by id LIMIT 1;', [time(), $queue_name]))
+        if ($this->connector->exec('UPDATE '.$this->table.' force index(PRIMARY) SET owner_thread_id=GREATEST(CONNECTION_ID() ,(@msgID:=id)*0),last_cosume_time=? WHERE queue_name=? and owner_thread_id=-1 order by id LIMIT 1;', [time(), $queue_name]))
         {
-            $row = app::get('system')->database()->executeQuery('select id, worker, params from system_queue_mysql where id=@msgID')->fetch();
+            $row = $this->connector->query('select id, worker, params from '.$this->table.' where id=@msgID')->fetchColumn();
             return $row;
         }
 
@@ -33,21 +36,26 @@ class MysqlHandler
 
     /**
      * 清空一个队列的内容
-     *
+     * todo pdo 并没有一个delete的函数，需要prepare 一条delete 语句，然后exec
      * @param string $queue_name
      *
      * @return bool
      */
     public function purge($queue_name){
-        return $this->delete(array('queue_name' => $queue_name));
+        return $this->connector->delete(array('queue_name' => $queue_name));
     }
 
+    /**
+     * 队列任务是否执行完毕
+     * todo pdo 并没有一个getRow的函数，需要prepare 一条query 语句，然后fetchColumn
+     * @param string $queue_name
+     *
+     * @return bool
+     */
+
     public function is_end($queue_name){
-        if (!$this->getRow('id', array('queue_name' => $queue_name, 'owner_thread_id' => -1))){
-            return true;
-        } else {
-            return false;
-        }
+        
+        return $this->connector->getRow('id', array('queue_name' => $queue_name, 'owner_thread_id' => -1));
     }
 }
 

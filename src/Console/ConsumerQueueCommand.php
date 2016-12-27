@@ -4,6 +4,7 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Yangyao\Queue\Queue;
+use Illuminate\Config\Repository as Config;
 class ConsumerQueueCommand extends Command
 {
     /**
@@ -21,14 +22,17 @@ class ConsumerQueueCommand extends Command
     /**
      * Execute the console command.
      *
+     * todo 这里的配置文件路径应该定义为一个常量
      * @return void
      */
     public function fire()
     {
         $queue = $this->input->getOption('queue');
-        if($message = Queue::instance()->get($queue)){
-            Queue::instance()->run($message);
-            Queue::instance()->ack($message);
+        $config_file = require(__DIR__.'../../config/queue.php');
+        $conf = new Config($config_file);
+        if($message = Queue::instance($conf)->get($queue)){
+            Queue::instance($conf)->run($message);
+            Queue::instance($conf)->ack($message);
         }
     }
 

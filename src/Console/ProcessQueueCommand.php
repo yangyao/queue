@@ -3,8 +3,8 @@ namespace Yangyao\Queue\Console;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use Yangyao\Queue\Queue;
 use Yangyao\Queue\Consumer;
+use Illuminate\Config\Repository as Config;
 class ProcessQueueCommand extends Command
 {
     /**
@@ -27,7 +27,9 @@ class ProcessQueueCommand extends Command
     public function fire()
     {
         $queue = $this->input->getOption('queue');
-        $queues = Queue::instance()->get_config('queues');
+        $config_file = require(__DIR__.'../../config/queue.php');
+        $conf = new Config($config_file);
+        $queues = $conf->get('queue.queues');
         if ($num = (int)$queues[$queue]['thread']) {
             with(new Consumer())->exec($queue, $num);
         }

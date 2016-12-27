@@ -1,6 +1,7 @@
 <?php
 namespace Illuminate\Queue\Console;
 use Illuminate\Console\Command;
+use Illuminate\Config\Repository as Config;
 class ListQueueCommand extends Command
 {
     /**
@@ -22,7 +23,9 @@ class ListQueueCommand extends Command
      */
     public function fire()
     {
-        $queues = $this->laravel['config']['queue.queues'];
+        $config_file = require(__DIR__.'../../config/queue.php');
+        $conf = new Config($config_file);
+        $queues = $conf->get('queue.queues');
         $list = array_keys($queues);
         echo @implode(' ', $list);
     }

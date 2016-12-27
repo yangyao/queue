@@ -10,7 +10,7 @@
     },
     "autoload":{
         "psr-4":{
-            "Yangyao\\Queue\\":"src/task-queue/"
+            "Yangyao\\Queue\\":"src/"
         }
     },
     "license": "MIT",
